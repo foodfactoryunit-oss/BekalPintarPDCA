@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Misi 5.6: Bekal Pintar PDCA</title>
+<style>
+:root{
+  --cream:#FFF8EC; --paper:#FFFFFF; --ink:#1F2547; --muted:#5B628A;
+  --cobalt:#2F4BD8; --indigo:#3B3F9E; --sage:#7FB898; --mint:#DDF2E7;
+  --coral:#FF8A6B; --coral-soft:#FFE6DE; --amber:#FFC24B; --amber-soft:#FFF1CC;
+  --line:#E7E2D3; --radius:20px;
+  --shadow:0 6px 22px rgba(47,75,216,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--ink);background:var(--cream);
+  background-image:radial-gradient(circle at 8% 10%,#DDE4FF 0,transparent 32%),radial-gradient(circle at 92% 6%,#DDF2E7 0,transparent 30%),radial-gradient(circle at 80% 95%,#FFE9C9 0,transparent 30%);
+  min-height:100vh;display:flex;flex-direction:column;line-height:1.5;
+}
+#app{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:16px}
+.screen{display:none}
+.screen.active{display:block;animation:fadeIn .5s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);padding:18px}
+button{font-family:inherit;cursor:pointer}
+.btn{border:0;border-radius:14px;padding:13px 22px;font-size:16px;font-weight:700;color:#fff;background:var(--cobalt);box-shadow:0 4px 0 #22369f;transition:transform .12s,box-shadow .12s,filter .2s}
+.btn:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.05)}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #22369f}
+.btn:disabled{background:#C9CCE0;box-shadow:0 4px 0 #AEB2CD;color:#fff;cursor:not-allowed}
+.btn.coral{background:var(--coral);box-shadow:0 4px 0 #d9684a}
+.btn.ghost{background:#fff;color:var(--indigo);border:2px solid var(--indigo);box-shadow:none}
+
+/* ---------- START ---------- */
+.start-wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:10px}
+.hero{background:linear-gradient(135deg,#2F4BD8 0%,#3B3F9E 100%);color:#fff;border:0;position:relative;overflow:hidden;padding:30px}
+.hero:after{content:"";position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.10)}
+.badge{display:inline-block;background:var(--amber);color:#5a3c00;font-weight:800;padding:5px 12px;border-radius:999px;font-size:13px;letter-spacing:.4px}
+.hero h1{font-size:34px;line-height:1.15;margin:14px 0 10px}
+.hero p{margin:0 0 14px;opacity:.95}
+.pdca-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.chip{padding:7px 13px;border-radius:12px;font-weight:800;font-size:14px;background:rgba(255,255,255,.18)}
+.how{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:8px;font-size:15px}
+.how li{background:rgba(255,255,255,.14);padding:9px 12px;border-radius:12px}
+.form h2{margin:0 0 4px}
+.form p.sub{margin:0 0 16px;color:var(--muted);font-size:14px}
+label{display:block;font-weight:700;margin:12px 0 6px;font-size:14px}
+input[type=text]{width:100%;padding:13px 14px;font-size:16px;border-radius:12px;border:2px solid var(--line);background:#fffdf8;color:var(--ink);outline:none;font-family:inherit}
+input[type=text]:focus{border-color:var(--cobalt);box-shadow:0 0 0 4px rgba(47,75,216,.12)}
+.err{color:#c4452a;font-size:13px;min-height:18px;margin-top:6px;font-weight:600}
+.shake{animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px}
+
+/* ---------- TOPBAR ---------- */
+.topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.brand{font-weight:900;color:var(--indigo);font-size:18px}
+.player{background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600;box-shadow:var(--shadow)}
+.player b{color:var(--cobalt)}
+.toggles{display:flex;gap:8px}
+.tg{border:2px solid var(--line);background:#fff;border-radius:12px;padding:7px 12px;font-weight:700;font-size:13px;color:var(--ink)}
+.tg.on{background:var(--mint);border-color:var(--sage)}
+.tg.off{background:#f1f0ec;color:#8b8a99}
+
+/* ---------- STAGE TRACKER ---------- */
+.tracker{display:flex;gap:8px;align-items:stretch;margin-bottom:14px}
+.stg{flex:1;border-radius:14px;padding:9px 10px;text-align:center;font-weight:800;font-size:14px;background:#fff;border:2px solid var(--line);color:#9aa0c0;transition:all .3s}
+.stg small{display:block;font-weight:600;font-size:11px}
+.stg.active{background:var(--cobalt);border-color:var(--cobalt);color:#fff;transform:translateY(-2px);box-shadow:0 6px 16px rgba(47,75,216,.28)}
+.stg.done{background:var(--mint);border-color:var(--sage);color:#2e6a4a}
+.stepinfo{font-size:13px;color:var(--muted);margin:-6px 2px 12px;font-weight:600}
+
+/* ---------- GAME GRID ---------- */
+.grid{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+.side{display:grid;gap:16px}
+.side h3,.main h3{margin:0 0 10px;font-size:15px;color:var(--indigo);letter-spacing:.3px;text-transform:uppercase}
+.mascot-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.mascot-row svg{width:64px;height:64px;flex:none}
+.bubble{background:var(--amber-soft);border-radius:14px;padding:8px 12px;font-size:13px;font-weight:600;position:relative}
+.lunch{background:#F3F5FF;border:3px solid var(--indigo);border-radius:18px;padding:10px;display:grid;grid-template-columns:1.15fr 1fr;grid-template-rows:1fr 1fr;gap:8px;min-height:190px}
+.slot{background:#fff;border:2px dashed #C6CBEA;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px;font-size:12px;color:var(--muted);transition:all .35s}
+.slot.karbo{grid-row:1/3}
+.slot .em{font-size:38px;line-height:1.1;filter:grayscale(1) opacity(.35);transition:all .35s}
+.slot.filled{border-style:solid;border-color:var(--sage);background:var(--mint);color:var(--ink);font-weight:700}
+.slot.filled .em{filter:none;animation:pop .45s}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+.slot .lb{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;opacity:.75}
+.lunch-status{margin-top:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:700}
+.pill{background:var(--amber-soft);border-radius:999px;padding:4px 11px}
+.pill.cost{background:var(--coral-soft)}
+.meter{margin-bottom:12px}
+.meter .top{display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:5px}
+.meter .bar{height:14px;background:#ECEAF6;border-radius:999px;overflow:hidden}
+.meter .fill{height:100%;width:0;border-radius:999px;transition:width 1s cubic-bezier(.22,1,.36,1)}
+.f-a{background:linear-gradient(90deg,#5b74f0,#2F4BD8)}
+.f-e{background:linear-gradient(90deg,#a4d6bb,#6fb08e)}
+.f-b{background:linear-gradient(90deg,#ffd77f,#ffab3d)}
+.delta{font-size:12px;font-weight:800;margin-left:6px;opacity:0;transition:opacity .3s}
+.delta.up{color:#2f8a5b;opacity:1}.delta.down{color:#c4452a;opacity:1}
+
+.main .stagetag{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:900;font-size:13px;background:var(--cobalt);color:#fff;letter-spacing:.5px}
+.main h2{margin:10px 0 8px;font-size:23px;line-height:1.25}
+.twist{background:linear-gradient(90deg,#FFE0A3,#FFC1A8);border:2px solid var(--amber);border-radius:14px;padding:10px 14px;font-weight:800;margin:10px 0;animation:wob .8s}
+@keyframes wob{0%,100%{transform:rotate(0)}25%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}75%{transform:rotate(-.6deg)}}
+.scenario{background:#F6F7FF;border-left:5px solid var(--cobalt);border-radius:12px;padding:12px 14px;margin:10px 0 14px;font-size:15.5px}
+.scenario b{color:var(--indigo)}
+table.data{border-collapse:collapse;width:100%;margin-top:10px;font-size:14px;background:#fff;border-radius:10px;overflow:hidden}
+table.data th,table.data td{border:1px solid var(--line);padding:7px 9px;text-align:center}
+table.data th{background:var(--indigo);color:#fff;font-weight:700}
+table.data td.bad{background:var(--coral-soft);font-weight:700}
+table.data td.ok{background:var(--mint)}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;background:#fff;border:2px solid var(--line);border-radius:16px;padding:12px 14px;font-size:15.5px;color:var(--ink);transition:all .18s;width:100%}
+.opt .lt{flex:none;width:30px;height:30px;border-radius:10px;background:#EEF0FF;color:var(--indigo);font-weight:900;display:flex;align-items:center;justify-content:center}
+.opt:hover:not(:disabled){border-color:var(--cobalt);transform:translateX(3px);background:#FAFBFF}
+.opt.wrong{border-color:var(--coral);background:var(--coral-soft);animation:shake .4s}
+.opt.wrong .lt{background:var(--coral);color:#fff}
+.opt.right{border-color:var(--sage);background:var(--mint)}
+.opt.right .lt{background:var(--sage);color:#fff}
+.opt:disabled{cursor:default}
+.opt:disabled:not(.wrong):not(.right){opacity:.6}
+.fb{margin-top:14px;border-radius:14px;padding:12px 14px;font-size:15px;display:none}
+.fb.show{display:block;animation:fadeIn .4s}
+.fb.bad{background:var(--coral-soft);border:2px solid var(--coral)}
+.fb.good{background:var(--mint);border:2px solid var(--sage)}
+.fb .ttl{font-weight:900;margin-bottom:4px}
+.navrow{margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.lockhint{font-size:13px;color:var(--muted);font-weight:600}
+
+/* builder */
+.bgroup{margin-bottom:12px}
+.bgroup h4{margin:0 0 6px;font-size:14px;color:var(--indigo)}
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.item{background:#fff;border:2px solid var(--line);border-radius:14px;padding:9px 10px;text-align:left;display:flex;gap:9px;align-items:center;color:var(--ink);transition:all .15s}
+.item .ie{font-size:26px}
+.item .in{font-weight:700;font-size:14px;line-height:1.25}
+.item .im{font-size:12px;color:var(--muted)}
+.item:hover:not(:disabled){border-color:var(--cobalt)}
+.item.sel{border-color:var(--cobalt);background:#EEF1FF;box-shadow:0 0 0 3px rgba(47,75,216,.15)}
+.item:disabled{cursor:default;opacity:.75}
+.totals{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.tot{background:#F6F7FF;border-radius:12px;padding:8px 14px;font-weight:800;font-size:14px}
+.tot.over{background:var(--coral-soft);color:#b23a20}
+.tot.fine{background:var(--mint);color:#2e6a4a}
+.issues{margin:6px 0 0;padding-left:18px}
+
+/* ---------- END ---------- */
+.end-top{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.score-ring{width:150px;height:150px;border-radius:50%;margin:6px auto;display:flex;align-items:center;justify-content:center;flex-direction:column;background:conic-gradient(var(--cobalt) calc(var(--p)*1%),#E9EBF7 0);position:relative}
+.score-ring:before{content:"";position:absolute;inset:14px;background:#fff;border-radius:50%}
+.score-ring span{position:relative;font-size:38px;font-weight:900;color:var(--indigo);line-height:1}
+.score-ring small{position:relative;font-weight:700;color:var(--muted)}
+.rank{font-size:22px;font-weight:900;text-align:center;color:var(--indigo)}
+.who{text-align:center;color:var(--muted);font-weight:600}
+.who b{color:var(--ink)}
+.take{display:grid;gap:8px;margin-top:6px}
+.take div{background:#F6F7FF;border-radius:12px;padding:9px 12px;font-size:14.5px}
+.take b{color:var(--cobalt)}
+table.sum{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+table.sum th,table.sum td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+table.sum th{color:var(--indigo);font-size:12.5px;text-transform:uppercase}
+.endbtns{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+
+footer{text-align:center;padding:16px;font-size:13px;color:var(--muted);font-weight:600;border-top:1px solid var(--line);background:rgba(255,255,255,.6)}
+
+@media (max-width:900px){
+  .start-wrap,.grid,.end-top{grid-template-columns:1fr}
+  .hero h1{font-size:27px}
+  .tracker .stg small{display:none}
+}
+@media print{
+  body{background:#fff}.toggles,.endbtns{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ================= START ================= -->
+  <section id="screen-start" class="screen active">
+    <div class="start-wrap">
+      <div class="card hero">
+        <span class="badge">MISI 5.6 • PELATIHAN LINTAS 5 DEPARTEMEN</span>
+        <h1>Bekal Pintar PDCA</h1>
+        <p>Racik kotak bekal harianmu, uji di pagi yang penuh kejutan, lalu bakukan kebiasaan yang terbukti hemat dan pas. Satu langkah salah? Kamu tidak bisa lanjut sebelum benar!</p>
+        <div class="pdca-chips">
+          <span class="chip">🧭 PLAN</span><span class="chip">🍱 DO</span><span class="chip">🔍 CHECK</span><span class="chip">🚀 ACT</span>
+        </div>
+        <ul class="how">
+          <li>🎯 Target harian: bekal ≤ Rp15.000, persiapan ≤ 20 menit, kenyang sampai siang.</li>
+          <li>📊 Pantau 3 indikator: Analisa, Eksekusi PDCA, Efisiensi Budget.</li>
+          <li>🔒 Tombol <b>Next</b> baru terbuka setelah langkah yang benar dipilih.</li>
+        </ul>
+      </div>
+      <div class="card form">
+        <h2>Isi Data Peserta</h2>
+        <p class="sub">Nama dan NIK wajib diisi sebelum misi dimulai.</p>
+        <form id="startForm" autocomplete="off" novalidate>
+          <label for="inName">Nama</label>
+          <input type="text" id="inName" placeholder="Contoh: Budi Santoso" maxlength="60">
+          <div class="err" id="errName"></div>
+          <label for="inNik">NIK</label>
+          <input type="text" id="inNik" placeholder="Contoh: 2026-0123" maxlength="20">
+          <div class="err" id="errNik"></div>
+          <div style="margin-top:14px"><button type="submit" class="btn" id="btnStart" style="width:100%">🍱 Mulai Misi</button></div>
+        </form>
+        <p class="note">🎧 Musik &amp; efek suara aktif setelah kamu menekan Mulai. Kamu bisa mematikannya kapan saja di layar permainan.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="screen-game" class="screen">
+    <div class="topbar">
+      <div class="brand">🍱 Misi 5.6 • Bekal Pintar PDCA</div>
+      <div class="player">👤 <b id="pName">-</b> &nbsp;•&nbsp; NIK: <b id="pNik">-</b></div>
+      <div class="toggles">
+        <button class="tg on" id="tgMusic" type="button">🎵 Musik: ON</button>
+        <button class="tg on" id="tgSfx" type="button">🔊 SFX: ON</button>
+      </div>
+    </div>
+
+    <div class="tracker" id="tracker">
+      <div class="stg" data-s="PLAN">🧭 PLAN<small>Rencanakan</small></div>
+      <div class="stg" data-s="DO">🍱 DO<small>Jalankan</small></div>
+      <div class="stg" data-s="CHECK">🔍 CHECK<small>Periksa</small></div>
+      <div class="stg" data-s="ACT">🚀 ACT<small>Tindak lanjut</small></div>
+    </div>
+    <div class="stepinfo" id="stepInfo"></div>
+
+    <div class="grid">
+      <aside class="side">
+        <div class="card">
+          <div class="mascot-row">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <circle cx="50" cy="50" r="48" fill="#DDE4FF"/>
+              <path d="M18 96 Q50 62 82 96 Z" fill="#2F4BD8"/>
+              <rect x="42" y="64" width="16" height="10" rx="4" fill="#F2C7A0"/>
+              <circle cx="50" cy="46" r="23" fill="#F7D2B0"/>
+              <path d="M27 44 Q28 20 50 20 Q72 20 73 44 Q62 30 50 31 Q38 30 27 44Z" fill="#4D3A33"/>
+              <circle cx="41" cy="48" r="3" fill="#1F2547"/><circle cx="59" cy="48" r="3" fill="#1F2547"/>
+              <circle cx="35" cy="56" r="4" fill="#FF9C86" opacity=".6"/><circle cx="65" cy="56" r="4" fill="#FF9C86" opacity=".6"/>
+              <path id="mouth" d="M41 58 Q50 67 59 58" stroke="#1F2547" stroke-width="3" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div class="bubble" id="bubble">Yuk racik bekal pintar hari ini!</div>
+          </div>
+          <h3>Kotak Bekal</h3>
+          <div class="lunch" id="lunch">
+            <div class="slot karbo" id="sl-karbo"><div class="em">🍚</div><div class="lb">Karbohidrat</div><div class="nm">kosong</div></div>
+            <div class="slot" id="sl-lauk"><div class="em">🍗</div><div class="lb">Lauk / Protein</div><div class="nm">kosong</div></div>
+            <div class="slot" id="sl-sayur"><div class="em">🥗</div><div class="lb">Pelengkap</div><div class="nm">kosong</div></div>
+          </div>
+          <div class="lunch-status">
+            <span class="pill" id="lunchStatus">Status: Kosong</span>
+            <span class="pill cost" id="lunchCost">Rp0 • 0 mnt</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Indikator Real-Time</h3>
+          <div class="meter"><div class="top"><span>🧠 Analisa<span class="delta" id="dA"></span></span><span id="vA">0%</span></div><div class="bar"><div class="fill f-a" id="mA"></div></div></div>
+          <div class="meter"><div class="top"><span>⚙️ Eksekusi PDCA<span class="delta" id="dE"></span></span><span id="vE">0%</span></div><div class="bar"><div class="fill f-e" id="mE"></div></div></div>
+          <div class="meter" style="margin-bottom:0"><div class="top"><span>💰 Efisiensi Budget<span class="delta" id="dB"></span></span><span id="vB">0%</span></div><div class="bar"><div class="fill f-b" id="mB"></div></div></div>
+        </div>
+      </aside>
+
+      <main class="card main" id="mainCard">
+        <span class="stagetag" id="stageTag">PLAN</span>
+        <h2 id="qTitle"></h2>
+        <div id="twistBox"></div>
+        <div class="scenario" id="qScenario"></div>
+        <div id="qBody"></div>
+        <div class="fb" id="fb"></div>
+        <div class="navrow">
+          <span class="lockhint" id="lockHint">🔒 Pilih langkah yang benar untuk membuka Next.</span>
+          <button class="btn" id="btnNext" type="button" disabled>Next ➜</button>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <!-- ================= END ================= -->
+  <section id="screen-end" class="screen">
+    <div class="topbar">
+      <div class="brand">🏁 Misi 5.6 Selesai • Rangkuman Akhir</div>
+      <div class="toggles">
+        <button class="tg on" id="tgMusic2" type="button">🎵 Musik: ON</button>
+        <button class="tg on" id="tgSfx2" type="button">🔊 SFX: ON</button>
+      </div>
+    </div>
+    <div class="end-top">
+      <div class="card">
+        <div class="who">Peserta: <b id="eName">-</b> &nbsp;•&nbsp; NIK: <b id="eNik">-</b></div>
+        <div class="score-ring" id="ring" style="--p:0"><span id="eScore">0</span><small>skor akhir</small></div>
+        <div class="rank" id="eRank"></div>
+        <p class="who" id="eRankDesc" style="margin:6px 0 0"></p>
+        <div style="margin-top:16px">
+          <div class="meter"><div class="top"><span>🧠 Analisa</span><span id="evA"></span></div><div class="bar"><div class="fill f-a" id="emA"></div></div></div>
+          <div class="meter"><div class="top"><span>⚙️ Eksekusi PDCA</span><span id="evE"></span></div><div class="bar"><div class="fill f-e" id="emE"></div></div></div>
+          <div class="meter" style="margin-bottom:0"><div class="top"><span>💰 Efisiensi Budget</span><span id="evB"></span></div><div class="bar"><div class="fill f-b" id="emB"></div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 8px;color:var(--indigo);text-transform:uppercase;font-size:15px">Kotak Bekal Final</h3>
+        <div class="lunch" id="lunchEnd" style="min-height:150px"></div>
+        <div class="lunch-status"><span class="pill" id="eCost"></span><span class="pill cost" id="eTime"></span></div>
+        <h3 style="margin:16px 0 4px;color:var(--indigo);text-transform:uppercase;font-size:15px">Catatan Percobaan</h3>
+        <table class="sum" id="sumTable"></table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin:0 0 6px;color:var(--indigo);text-transform:uppercase;font-size:15px">Pesan Kunci PDCA</h3>
+      <div class="take">
+        <div><b>PLAN</b> – Mulai dari fakta &amp; celah, bukan dari asumsi atau belanja mahal. Racikan diuji kecil dulu.</div>
+        <div><b>DO</b> – Jalankan sesuai rencana, hadapi kejutan, dan catat fakta saat itu juga.</div>
+        <div><b>CHECK</b> – Bandingkan tiap hari dengan target (bukan rata-rata atau kesan) dan temukan celah tersisa.</div>
+        <div><b>ACT</b> – Bakukan yang terbukti, perbaiki yang masih bocor, lalu jadwalkan siklus berikutnya.</div>
+      </div>
+      <div class="endbtns">
+        <button class="btn" id="btnAgain" type="button">🔁 Main Lagi</button>
+        <button class="btn ghost" id="btnPrint" type="button">🖨️ Cetak Rangkuman</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>Education &amp; Training Department - Food Beverage Industry (2026)</footer>
+
+<script>
+(function(){
+'use strict';
+var $ = function(id){return document.getElementById(id);};
+
+/* =====================================================
+   AUDIO (Web Audio API - tanpa file eksternal)
+   ===================================================== */
+var AU = {
+  ctx:null, master:null, musicGain:null, sfxGain:null,
+  musicOn:true, sfxOn:true, timer:null, nextT:0, step:0, started:false,
+  init:function(){
+    try{
+      if(this.ctx){ if(this.ctx.state==='suspended') this.ctx.resume(); return; }
+      var C = window.AudioContext || window.webkitAudioContext;
+      if(!C) return;
+      this.ctx = new C();
+      this.master = this.ctx.createGain(); this.master.gain.value = 0.9; this.master.connect(this.ctx.destination);
+      var lp = this.ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 2400;
+      this.musicGain = this.ctx.createGain(); this.musicGain.gain.value = 0.55;
+      this.musicGain.connect(lp); lp.connect(this.master);
+      this.sfxGain = this.ctx.createGain(); this.sfxGain.gain.value = 0.85; this.sfxGain.connect(this.master);
+    }catch(e){ this.ctx=null; }
+  },
+  tone:function(f,t,d,type,v,dest){
+    if(!this.ctx) return;
+    try{
+      var c=this.ctx, o=c.createOscillator(), g=c.createGain();
+      o.type=type; o.frequency.setValueAtTime(f,t);
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(v,t+0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+      o.connect(g); g.connect(dest); o.start(t); o.stop(t+d+0.05);
+    }catch(e){}
+  },
+  sfx:function(name){
+    if(!this.ctx || !this.sfxOn) return;
+    var c=this.ctx, t=c.currentTime, d=this.sfxGain, i;
+    try{
+      if(name==='click'){
+        this.tone(660,t,0.09,'triangle',0.18,d); this.tone(990,t+0.05,0.09,'triangle',0.14,d);
+      } else if(name==='pick'){
+        this.tone(520,t,0.1,'sine',0.2,d); this.tone(780,t+0.06,0.12,'triangle',0.16,d);
+      } else if(name==='correct'){
+        var n=[523.25,659.25,783.99,1046.5];
+        for(i=0;i<n.length;i++){ this.tone(n[i],t+i*0.09,0.28,'triangle',0.2,d); }
+        this.tone(1568,t+0.36,0.4,'sine',0.1,d);
+      } else if(name==='wrong'){
+        this.tone(233,t,0.2,'sawtooth',0.1,d); this.tone(175,t+0.17,0.34,'sawtooth',0.1,d);
+      } else if(name==='twist'){
+        var o=c.createOscillator(), g=c.createGain();
+        o.type='square'; o.frequency.setValueAtTime(300,t); o.frequency.exponentialRampToValueAtTime(1300,t+0.35);
+        g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.09,t+0.05); g.gain.exponentialRampToValueAtTime(0.0001,t+0.42);
+        o.connect(g); g.connect(d); o.start(t); o.stop(t+0.5);
+        this.tone(880,t+0.4,0.14,'triangle',0.18,d); this.tone(659,t+0.52,0.14,'triangle',0.18,d); this.tone(880,t+0.64,0.22,'triangle',0.18,d);
+      } else if(name==='finish'){
+        var m=[523.25,523.25,659.25,783.99,1046.5], dl=[0,0.14,0.28,0.45,0.65];
+        for(i=0;i<m.length;i++){ this.tone(m[i],t+dl[i],0.4,'triangle',0.2,d); }
+        this.tone(523.25,t+0.65,1.1,'sine',0.12,d); this.tone(659.25,t+0.65,1.1,'sine',0.1,d); this.tone(783.99,t+0.65,1.1,'sine',0.1,d);
+      }
+    }catch(e){}
+  },
+  CH:[ {r:130.81,t:[261.63,329.63,392.0]}, {r:110.0,t:[220.0,261.63,329.63]}, {r:87.31,t:[174.61,220.0,261.63]}, {r:98.0,t:[196.0,246.94,293.66]} ],
+  ARP:[0,1,2,1,0,1,2,1],
+  PENT:[523.25,587.33,659.25,783.99,880.0,783.99,659.25,587.33],
+  playStep:function(s,t){
+    var bar=Math.floor(s/8)%4, pos=s%8, ch=this.CH[bar], g=this.musicGain;
+    if(pos===0) this.tone(ch.r,t,0.7,'triangle',0.16,g);
+    if(pos===4) this.tone(ch.r*1.5,t,0.4,'triangle',0.1,g);
+    this.tone(ch.t[this.ARP[pos]],t,0.32,'triangle',0.07,g);
+    if(s>=16 && (pos===0||pos===3||pos===6)){
+      var idx=(Math.floor(s/2)+pos)%this.PENT.length;
+      this.tone(this.PENT[idx],t,0.28,'sine',0.055,g);
+    }
+  },
+  sched:function(){
+    if(!this.ctx) return;
+    var eighth = 60/104/2;
+    while(this.nextT < this.ctx.currentTime + 0.25){
+      this.playStep(this.step,this.nextT);
+      this.nextT += eighth;
+      this.step = (this.step+1) % 64;
+    }
+  },
+  startMusic:function(){
+    if(!this.ctx || !this.musicOn || this.timer) return;
+    var me=this;
+    this.nextT=this.ctx.currentTime+0.1; this.step=0;
+    this.timer=setInterval(function(){me.sched();},60);
+  },
+  stopMusic:function(){ if(this.timer){clearInterval(this.timer); this.timer=null;} }
+};
+
+function syncToggles(){
+  [['tgMusic','tgMusic2']].forEach(function(p){
+    p.forEach(function(id){
+      var b=$(id); if(!b) return;
+      b.textContent='🎵 Musik: '+(AU.musicOn?'ON':'OFF');
+      b.className='tg '+(AU.musicOn?'on':'off');
+    });
+  });
+  ['tgSfx','tgSfx2'].forEach(function(id){
+    var b=$(id); if(!b) return;
+    b.textContent='🔊 SFX: '+(AU.sfxOn?'ON':'OFF');
+    b.className='tg '+(AU.sfxOn?'on':'off');
+  });
+}
+function toggleMusic(){
+  AU.init(); AU.musicOn=!AU.musicOn;
+  if(AU.musicOn) AU.startMusic(); else AU.stopMusic();
+  syncToggles();
+}
+function toggleSfx(){
+  AU.init(); AU.sfxOn=!AU.sfxOn; syncToggles();
+  if(AU.sfxOn) AU.sfx('click');
+}
+$('tgMusic').addEventListener('click',toggleMusic);
+$('tgMusic2').addEventListener('click',toggleMusic);
+$('tgSfx').addEventListener('click',toggleSfx);
+$('tgSfx2').addEventListener('click',toggleSfx);
+
+/* =====================================================
+   DATA GAME
+   ===================================================== */
+var TARGET_COST=15000, TARGET_TIME=20;
+function rp(n){ return 'Rp'+Number(n).toLocaleString('id-ID'); }
+
+var ITEMS={
+  karbo:[
+    {id:'nasi',  n:'Nasi putih hangat',   e:'🍚',c:3000, t:5, note:'Kenyang awet'},
+    {id:'merah', n:'Nasi merah',          e:'🍙',c:4000, t:6, note:'Serat lebih tinggi'},
+    {id:'mi',    n:'Mi instan goreng',    e:'🍜',c:3500, t:6, note:'Cepat saji',bad:true},
+    {id:'roti',  n:'Roti isi beli jadi',  e:'🥪',c:10000,t:2, note:'Serba siap'}
+  ],
+  lauk:[
+    {id:'telur', n:'Telur dadar',            e:'🍳',c:3000,t:5, note:'Protein praktis'},
+    {id:'ayamg', n:'Ayam goreng tepung jadi',e:'🍗',c:8000,t:2, note:'Beli matang'},
+    {id:'tempe', n:'Tempe orek',             e:'🥘',c:2500,t:8, note:'Protein nabati'},
+    {id:'ayamp', n:'Ayam panggang marinasi', e:'🍖',c:7000,t:15,note:'Perlu diungkep'}
+  ],
+  sayur:[
+    {id:'tumis', n:'Tumis buncis wortel', e:'🥕',c:2500,t:7, note:'Sayur segar'},
+    {id:'pisang',n:'Pisang potong',       e:'🍌',c:2000,t:1, note:'Buah praktis'},
+    {id:'salad', n:'Salad kemasan jadi',  e:'🥗',c:9000,t:1, note:'Beli kemasan'},
+    {id:'sop',   n:'Sup sayur rebus',     e:'🥣',c:3000,t:10,note:'Perlu direbus'}
+  ]
+};
+var SLOT_LABEL={karbo:'Karbohidrat',lauk:'Lauk / Protein',sayur:'Pelengkap'};
+
+/* Setiap opsi: t = teks, ok = benar, fb = umpan balik, loss = dampak indikator bila salah */
+var STEPS=[
+ { stage:'PLAN', title:'Cari Akar Masalah Bekalmu', type:'mcq', mood:'Mulai dari fakta dulu, ya!',
+   scenario:'Catatan satu minggu terakhir: <b>Senin &amp; Rabu</b> bekal habis dan kamu jajan jam 10 karena lapar. <b>Selasa</b> menyiapkan bekal memakan 35 menit sampai nyaris terlambat. <b>Kamis</b> total bekal + jajan mencapai Rp28.000. Targetmu: bekal ≤ Rp15.000, persiapan ≤ 20 menit, kenyang sampai makan siang. Apa langkah PLAN yang paling tepat?',
+   gain:{a:14,e:2,b:4},
+   good:'Tepat! PLAN yang kuat berangkat dari fakta yang sudah ada: jam lapar, menit persiapan, dan total pengeluaran. Dari sana kamu bisa memetakan penyebab (kenyang tidak awet, persiapan bertele-tele, jajan) sebelum memilih menu apa pun.',
+   options:[
+    {t:'Kumpulkan fakta mingguan yang ada (jam lapar, menit persiapan, total pengeluaran) lalu petakan penyebabnya sebelum memilih menu baru.',ok:true},
+    {t:'Ganti seluruh isi bekal dengan paket makanan siap saji yang lebih mahal supaya waktu persiapan langsung terpangkas drastis.',loss:{a:-5,e:-3,b:-6},
+     fb:'Jebakan jalan pintas: paket siap saji memang cepat, tetapi biayanya langsung melewati target Rp15.000 dan akar masalah belum diketahui. PLAN dimulai dari fakta, bukan dari solusi mahal.'},
+    {t:'Simpulkan bahwa porsi terlalu kecil, lalu tambah porsi semua menu mulai besok tanpa memeriksa catatan waktu dan pengeluaran.',loss:{a:-6,e:-3,b:-4},
+     fb:'Jebakan asumsi: "porsi kurang" baru dugaan. Catatan juga menunjukkan persiapan lama dan jajan mahal. Tanpa fakta, menambah porsi bisa menambah biaya dan waktu tanpa menyelesaikan akar masalah.'},
+    {t:'Tetapkan dulu menu favorit untuk seminggu penuh berdasarkan selera, kemudian cocokkan dengan waktu dan biaya setelah semuanya dibeli.',loss:{a:-5,e:-4,b:-5},
+     fb:'Jebakan urutan: memilih menu dulu lalu mencocokkan belakangan membuat waktu dan biaya jadi korban. Target dan celah harus jelas lebih dulu, baru racikan disusun.'}
+   ]},
+
+ { stage:'PLAN', title:'Racik Kotak Bekal dalam Batas Target', type:'build', mood:'Pilih 1 karbo, 1 lauk, 1 pelengkap!',
+   scenario:'Berdasarkan fakta tadi, racik kotak bekal dengan <b>1 karbohidrat, 1 lauk/protein, dan 1 pelengkap sayur/buah</b>. Syarat: total biaya <b>≤ Rp15.000</b>, total waktu persiapan <b>≤ 20 menit</b>, dan komposisinya cukup seimbang agar kenyang tahan sampai siang. Tekan <b>Uji Racikan</b> bila sudah yakin.',
+   gain:{a:8,e:6,b:10},
+   boxStatus:'Rencana terkunci' },
+
+ { stage:'PLAN', title:'Susun Rencana Uji Coba Kecil', type:'mcq', mood:'Uji kecil dulu sebelum jadi kebiasaan.',
+   scenario:'Racikanmu sudah masuk anggaran dan waktu di atas kertas. Sebelum dijadikan kebiasaan, bagaimana rencana pengujiannya disusun?',
+   gain:{a:6,e:8,b:6}, boxStatus:'Siap diuji',
+   good:'Tepat! Uji coba kecil (3 hari) dengan target jelas dan lembar catat membuat hasilnya bisa dibandingkan secara objektif di tahap CHECK, dan risikonya kecil bila ternyata ada celah.',
+   options:[
+    {t:'Uji racikan ini selama tiga hari kerja, tetapkan target Rp15.000 dan 20 menit, lalu siapkan lembar catat waktu, biaya, dan sisa bekal.',ok:true},
+    {t:'Langsung terapkan racikan ini untuk sebulan penuh sekaligus beserta jadwal belanja baru agar hasilnya terlihat lebih cepat.',loss:{a:-3,e:-5,b:-5},
+     fb:'Jebakan skala besar: menerapkan sebulan tanpa uji kecil berisiko memboroskan belanja bila ternyata ada celah. Uji kecil membuat koreksi murah dan cepat.'},
+    {t:'Rombak sarapan, jam bangun, dan rute berangkat bersamaan dengan bekal baru supaya semua kebiasaan lama terganti dalam seminggu.',loss:{a:-4,e:-6,b:-3},
+     fb:'Jebakan merombak sekaligus: terlalu banyak perubahan bersamaan membuat kamu tidak tahu perubahan mana yang berhasil atau gagal. Ubah sedikit, ukur, lalu lanjut.'},
+    {t:'Cukup siapkan racikan baru tiga hari dan nilai hasilnya dari rasa puas di akhir pekan tanpa perlu menulis waktu maupun biaya.',loss:{a:-6,e:-4,b:-3},
+     fb:'Jebakan kesan: rasa puas tidak bisa dibandingkan dengan target. Tanpa angka waktu dan biaya, tahap CHECK nanti hanya berisi ingatan yang bisa keliru.'}
+   ]},
+
+ { stage:'DO', title:'Hari 1: Jalankan Uji Coba', type:'mcq', mood:'Jalankan sesuai rencana, catat langsung!',
+   scenario:'Pukul 05.30 pagi, hari pertama uji coba. Bahan sudah siap di dapur. Sambil menyiapkan bekal, apa yang paling tepat kamu lakukan?',
+   gain:{a:2,e:12,b:6}, boxStatus:'Diuji lapangan',
+   good:'Tepat! DO berarti menjalankan rencana apa adanya dan mencatat fakta saat itu juga: jam mulai-selesai, biaya, dan kendala. Data yang dicatat langsung jauh lebih jujur daripada ingatan.',
+   options:[
+    {t:'Jalankan sesuai rencana, nyalakan pewaktu, lalu catat jam mulai-selesai, biaya belanja, dan kendala saat itu juga di lembar catat.',ok:true},
+    {t:'Siapkan bekal secepat mungkin tanpa mencatat apa pun, lalu isi lembar catat dari ingatan malam harinya saat sudah santai.',loss:{a:-3,e:-6,b:-2},
+     fb:'Jebakan ingatan: mengisi catatan dari memori mengaburkan waktu dan biaya sebenarnya. Fakta lapangan harus dicatat ketika kejadian berlangsung.'},
+    {t:'Ubah menu di tengah jalan setiap kali terasa repot, lalu catat saja menu terakhir yang berhasil dimasukkan ke kotak bekal.',loss:{a:-2,e:-6,b:-3},
+     fb:'Jebakan berubah-ubah: mengganti menu di tengah jalan membuat hasil tidak bisa dibandingkan dengan rencana. Jalankan dulu apa adanya, catat kendalanya, perbaiki nanti di ACT.'},
+    {t:'Tambahkan bahan ekstra dan beli lauk jadi bila terasa lambat, karena yang penting bekal selesai tepat waktu hari itu.',loss:{a:-3,e:-4,b:-7},
+     fb:'Jebakan belanja mahal: membeli tambahan setiap terasa lambat menyembunyikan penyebab lambat dan menggerus anggaran tanpa dicatat sebagai temuan.'}
+   ]},
+
+ { stage:'DO', title:'Hari 2: Kejutan Pagi, Alarm Telat!', type:'mcq', twist:'⚡ KEJUTAN PAGI! Alarm tidak berbunyi.', mood:'Waduh, waktunya menipis!',
+   scenario:'Kamu bangun terlambat. Waktu persiapan yang tersisa hanya <b>12 menit</b>, padahal rencana butuh sekitar 17 menit. Bahan masih lengkap. Bagaimana kamu menjalankan DO hari ini?',
+   gain:{a:6,e:10,b:4},
+   good:'Tepat! DO boleh menyesuaikan kondisi lapangan, asalkan perubahan dan dampaknya dicatat. Versi ringkas yang tetap memakai bahan rencana memberi data berharga: apa yang bisa dipangkas dan apa efeknya pada rasa kenyang.',
+   options:[
+    {t:'Jalankan versi ringkas dari rencana (misalnya pelengkap diganti potongan buah), catat menit tersisa dan bagian yang dipangkas sebagai temuan.',ok:true},
+    {t:'Beli bekal jadi di jalan dan buang rencana hari ini, lalu tulis di catatan bahwa uji coba hari kedua tidak perlu dihitung.',loss:{a:-4,e:-6,b:-6},
+     fb:'Jebakan jalan pintas: membuang rencana dan menghapus hari "berantakan" justru membuang data paling berharga. Hari bermasalah tetap dicatat agar CHECK jujur.'},
+    {t:'Lewati lauk dan pelengkap, isi nasi saja agar cepat, lalu anggap hari ini berhasil karena kotak bekal tetap terbawa ke kantor.',loss:{a:-5,e:-5,b:-3},
+     fb:'Jebakan kesan: "yang penting terbawa" bukan bukti keberhasilan. Nasi saja tidak memenuhi gizi seimbang dan kenyang tahan lama, yang justru menjadi target awal.'},
+    {t:'Masak semua menu tetap dengan langkah penuh meski terlambat, karena kualitas rencana harus dijaga walau berangkat mepet ke kantor.',loss:{a:-3,e:-6,b:-4},
+     fb:'Jebakan kaku: memaksa langkah penuh membuatmu berangkat terlambat dan merusak target waktu. Menyesuaikan dengan kondisi lapangan itu boleh, selama dicatat.'}
+   ]},
+
+ { stage:'DO', title:'Hari 3: Kejutan Pagi, Lauk Utama Habis!', type:'mcq', twist:'⚡ KEJUTAN PAGI! Bahan lauk tidak tersedia.', mood:'Lauk habis! Cari pengganti cerdas.',
+   scenario:'Saat membuka kulkas, <b>lauk utama</b> yang kamu rencanakan ternyata habis. Waktu cukup normal, tetapi tetap harus hemat dan kenyang tahan sampai siang. Apa yang kamu lakukan?',
+   gain:{a:6,e:10,b:8}, boxStatus:'Diuji lapangan (lauk diganti)',
+   box:{lauk:{n:'Lauk pengganti setara protein',e:'🥚'}},
+   good:'Tepat! Mengganti dengan sumber protein setara yang masih muat anggaran menjaga tujuan rencana, dan mencatat selisih biaya serta waktunya memberi bahan bukti untuk tahap CHECK.',
+   options:[
+    {t:'Ganti dengan lauk pengganti setara protein yang masih muat anggaran, seperti tempe atau telur rebus, lalu catat selisih biaya dan waktunya.',ok:true},
+    {t:'Beli lauk jadi paling praktis di warung depan tanpa menghitung harganya, supaya kotak bekal tetap penuh dan waktu tidak terbuang.',loss:{a:-3,e:-4,b:-7},
+     fb:'Jebakan praktis mahal: lauk jadi cepat tetapi harganya bisa menembus anggaran, dan tanpa dihitung kamu tidak punya bukti selisih biaya yang sebenarnya.'},
+    {t:'Kosongkan slot lauk dan perbanyak nasi serta sayur agar hemat, lalu anggap komposisi hari ini tetap sesuai rencana awal.',loss:{a:-5,e:-5,b:-2},
+     fb:'Jebakan menutupi celah: slot protein kosong membuat kenyang tidak awet. Menganggapnya "tetap sesuai rencana" menyembunyikan penyimpangan yang harus dicatat.'},
+    {t:'Tunda keputusan sampai siang dan makan jajanan kantin saja, lalu hitung ulang biaya bekal di akhir minggu dari ingatan.',loss:{a:-4,e:-6,b:-5},
+     fb:'Jebakan menunda: jajan menambah pengeluaran, dan menghitung ulang dari ingatan mengulang kesalahan lama. Keputusan pengganti harus diambil saat itu juga dengan data.'}
+   ]},
+
+ { stage:'CHECK', title:'Bandingkan Hasil dengan Target', type:'mcq', mood:'Saatnya cek angka, bukan kesan.',
+   scenario:'Catatan tiga hari uji coba dibandingkan dengan target (Rp15.000, 20 menit, kenyang sampai siang). Bagaimana cara membaca hasil ini secara objektif?',
+   table:{head:['Hari','Biaya','Waktu','Kenyang s/d siang'],rows:[
+     ['Target','≤ Rp15.000','≤ 20 mnt','Ya',''],
+     ['Hari 1','Rp12.500','18 mnt','Ya','ok'],
+     ['Hari 2','Rp13.200','16 mnt','Agak lapar jam 11','bad2'],
+     ['Hari 3','Rp16.800','22 mnt','Ya','bad']
+   ]},
+   gain:{a:14,e:4,b:4}, boxStatus:'Sedang diperiksa',
+   good:'Tepat! CHECK membandingkan tiap hari dengan target. Terlihat hari 3 melewati biaya dan waktu, hari 2 hemat tetapi kurang kenyang, dan hanya hari 1 yang penuh sesuai target.',
+   options:[
+    {t:'Bandingkan tiap hari dengan target: hari 3 melebihi biaya dan waktu, hari 2 kurang kenyang, hanya hari 1 yang penuh sesuai target.',ok:true},
+    {t:'Rata-rata tiga hari sudah masuk target, jadi simpulkan rencana berhasil dan anggap hari 3 sebagai kejadian yang jarang terulang.',loss:{a:-6,e:-3,b:-4},
+     fb:'Jebakan rata-rata: angka rata-rata menutupi hari 3 yang melewati biaya dan waktu serta hari 2 yang kurang kenyang. CHECK membandingkan tiap hari agar celah tampak.'},
+    {t:'Fokus pada hari 1 yang paling lengkap dan sesuai, lalu pakai angka itu sebagai bukti bahwa racikan layak dipakai seterusnya.',loss:{a:-6,e:-2,b:-3},
+     fb:'Jebakan memilih data terbaik: hanya memakai hari terbaik membuat bukti bias. Semua data, termasuk hari yang melenceng, harus ikut diperiksa.'},
+    {t:'Pasang target baru yang lebih ketat hari ini juga, karena angka hari 3 menunjukkan bahwa target lama terlalu longgar.',loss:{a:-5,e:-3,b:-4},
+     fb:'Jebakan menggeser target: mengetatkan target tanpa tahu penyebab selisih tidak memperbaiki apa pun. Telusuri akar celahnya dulu baru putuskan perubahan.'}
+   ]},
+
+ { stage:'CHECK', title:'Periksa Alur Kebiasaan dan Sisa Celah', type:'mcq', mood:'Cari celah yang masih tersisa.',
+   scenario:'Dari tabel tiga hari, kamu melihat dua penyimpangan: <b>hari 2</b> kurang kenyang setelah pelengkap dipangkas, dan <b>hari 3</b> melewati biaya karena lauk pengganti dibeli lebih mahal dan lebih lama. Bagaimana memeriksa alur kebiasaan dan sisa celah ini?',
+   gain:{a:12,e:4,b:2},
+   good:'Tepat! Menelusuri penyebab tiap penyimpangan (stok pengganti dan pelengkap yang kurang mengenyangkan) mengubah angka menjadi celah konkret yang bisa diperbaiki di tahap ACT.',
+   options:[
+    {t:'Telusuri penyebab hari 3 (lauk pengganti dibeli mahal) dan hari 2 (pelengkap dipangkas hingga lapar), lalu catat keduanya sebagai celah tersisa.',ok:true},
+    {t:'Anggap hari 3 hanya karena harga pasar naik dan hari 2 karena nafsu makan sedang turun, sehingga tidak ada celah yang perlu dicatat.',loss:{a:-6,e:-2,b:-4},
+     fb:'Jebakan alasan sepihak: menyalahkan faktor luar tanpa bukti membuat celah yang sebenarnya (stok pengganti dan pelengkap) tidak pernah diperbaiki.'},
+    {t:'Tanyakan kesan rekan kerja tentang bekalmu, dan bila mereka bilang tampilannya menarik, simpulkan kebiasaan pagimu sudah tidak bermasalah.',loss:{a:-5,e:-3,b:-3},
+     fb:'Jebakan kesan orang lain: tampilan menarik tidak membuktikan biaya, waktu, atau rasa kenyang. CHECK menuntut data yang objektif.'},
+    {t:'Perbaiki semua celah sekaligus hari ini dengan mengganti seluruh menu dan jam belanja, tanpa menguji dulu mana penyebab utamanya.',loss:{a:-4,e:-5,b:-4},
+     fb:'Jebakan merombak sekaligus: tanpa tahu penyebab utamanya, perubahan serentak bisa menambah masalah baru. Temukan penyebab dulu, baru tindak lanjuti.'}
+   ]},
+
+ { stage:'ACT', title:'Tentukan Tindak Lanjut Berbasis Bukti', type:'mcq', mood:'Bakukan yang terbukti saja!',
+   scenario:'Buktinya: racikan inti <b>hemat dan cepat saat bahan lengkap</b> (hari 1). Celah yang tersisa: <b>stok lauk pengganti</b> belum siap dan <b>pelengkap ringkas</b> kurang mengenyangkan. Apa tindak lanjut ACT yang paling tepat?',
+   gain:{a:6,e:10,b:12}, boxStatus:'Dibakukan (siap siklus 2)',
+   good:'Tepat! ACT membakukan bagian yang terbukti, menutup celah dengan perbaikan spesifik (stok pengganti murah dan buah pendamping), lalu menguji lagi lewat siklus berikutnya.',
+   options:[
+    {t:'Bakukan komposisi inti yang terbukti pas, tambahkan stok lauk pengganti murah dan buah pendamping, lalu uji siklus kedua tiga hari lagi.',ok:true},
+    {t:'Bakukan seluruh racikan sebagai aturan tetap sekarang juga, karena dua dari tiga hari sudah cukup baik untuk jadi kebiasaan.',loss:{a:-3,e:-6,b:-5},
+     fb:'Jebakan buru-buru membakukan: masih ada pemborosan hari 3 dan rasa lapar hari 2. Membakukan sebelum celah tertutup berarti mengunci kebiasaan yang bocor.'},
+    {t:'Buang racikan ini seluruhnya dan mulai merancang menu baru dari nol, sebab satu hari melenceng berarti rencananya keliru.',loss:{a:-5,e:-5,b:-4},
+     fb:'Jebakan membuang semua: bagian inti terbukti hemat dan cepat di hari 1. ACT memperbaiki celah yang spesifik, bukan menghapus yang sudah terbukti.'},
+    {t:'Beli stok lauk jadi dalam jumlah besar untuk seminggu ke depan agar hari berikutnya tidak melenceng lagi dari target waktu.',loss:{a:-2,e:-4,b:-8},
+     fb:'Jebakan belanja besar: lauk jadi dalam jumlah besar menaikkan biaya, bertentangan dengan target Rp15.000, dan tidak menyentuh penyebab celah sebenarnya.'}
+   ]},
+
+ { stage:'ACT', title:'Kunci Kebiasaan dan Jadwalkan Siklus Berikutnya', type:'mcq', mood:'Hampir selesai, tinggal menutup siklus!',
+   scenario:'Siklus kedua selesai: tiga hari berturut-turut biaya <b>Rp13.000–Rp14.500</b>, waktu <b>17–19 menit</b>, dan kenyang sampai siang. Tidak ada kendala baru. Apa langkah penutup yang paling tepat?',
+   gain:{a:4,e:12,b:8}, boxStatus:'Kebiasaan terbaku',
+   good:'Tepat! Checklist belanja dan urutan persiapan membakukan kebiasaan, sedangkan pemeriksaan mingguan menjaga agar tetap terkendali. PDCA berputar terus, bukan berhenti pada satu hasil bagus.',
+   options:[
+    {t:'Bakukan checklist belanja dan urutan persiapan, pasang pengingat pemeriksaan mingguan, dan jadwalkan siklus PDCA baru bila muncul celah.',ok:true},
+    {t:'Bakukan menu dan hentikan pencatatan karena hasilnya sudah bagus, sehingga pagi hari bisa lebih santai tanpa lembar catatan.',loss:{a:-4,e:-6,b:-3},
+     fb:'Jebakan berhenti mengukur: tanpa pemeriksaan berkala, pemborosan dan kendala baru tidak terdeteksi sampai terlambat. Standar perlu dijaga, bukan dilupakan.'},
+    {t:'Terapkan menu yang sama untuk semua rekan di lima departemen tanpa uji kecil, sebab hasil di dapurmu sudah terbukti.',loss:{a:-3,e:-5,b:-4},
+     fb:'Jebakan menyamaratakan: hasil di dapurmu belum tentu cocok untuk waktu, selera, dan anggaran orang lain. Perluasan juga perlu uji kecil lebih dulu.'},
+    {t:'Naikkan target anggaran dan waktu agar angka berikutnya selalu terlihat tercapai, sehingga laporan mingguan tampak konsisten.',loss:{a:-4,e:-4,b:-7},
+     fb:'Jebakan melonggarkan target: laporan terlihat bagus tetapi tidak ada perbaikan nyata. Target harus tetap menantang dan berbasis bukti.'}
+   ]}
+];
+
+/* =====================================================
+   STATE
+   ===================================================== */
+var S=null;
+function newState(){
+  return {
+    name:'', nik:'', step:0, answered:false,
+    meters:{a:20,e:15,b:40},
+    wrong:[], wrongTotal:0, firstTry:0,
+    lunch:{karbo:null,lauk:null,sayur:null,status:'Kosong',cost:0,time:0},
+    pick:{karbo:null,lauk:null,sayur:null}
+  };
+}
+function clamp(v){return Math.max(0,Math.min(100,v));}
+
+/* =====================================================
+   UI HELPERS
+   ===================================================== */
+function showScreen(id){
+  var all=document.querySelectorAll('.screen');
+  for(var i=0;i<all.length;i++) all[i].classList.remove('active');
+  $(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function setMood(kind,text){
+  $('mouth').setAttribute('d', kind==='sad' ? 'M41 64 Q50 56 59 64' : (kind==='wow' ? 'M43 58 Q50 70 57 58 Z' : 'M41 58 Q50 67 59 58'));
+  if(text) $('bubble').textContent=text;
+}
+function updateMeters(){
+  var m=S.meters;
+  $('mA').style.width=m.a+'%'; $('vA').textContent=Math.round(m.a)+'%';
+  $('mE').style.width=m.e+'%'; $('vE').textContent=Math.round(m.e)+'%';
+  $('mB').style.width=m.b+'%'; $('vB').textContent=Math.round(m.b)+'%';
+}
+var deltaTimers={};
+function flashDelta(id,v){
+  var el=$(id); if(!el||!v) return;
+  el.textContent=(v>0?'▲ +':'▼ ')+v;
+  el.className='delta '+(v>0?'up':'down');
+  clearTimeout(deltaTimers[id]);
+  deltaTimers[id]=setTimeout(function(){el.className='delta';},1800);
+}
+function applyFx(fx){
+  S.meters.a=clamp(S.meters.a+(fx.a||0));
+  S.meters.e=clamp(S.meters.e+(fx.e||0));
+  S.meters.b=clamp(S.meters.b+(fx.b||0));
+  flashDelta('dA',fx.a); flashDelta('dE',fx.e); flashDelta('dB',fx.b);
+  updateMeters();
+}
+function renderLunch(){
+  ['karbo','lauk','sayur'].forEach(function(k){
+    var el=$('sl-'+k), it=S.lunch[k];
+    var nm=el.querySelector('.nm'), em=el.querySelector('.em');
+    if(it){ el.classList.add('filled'); em.textContent=it.e; nm.textContent=it.n; }
+    else { el.classList.remove('filled'); nm.textContent='kosong'; }
+  });
+  $('lunchStatus').textContent='Status: '+S.lunch.status;
+  $('lunchCost').textContent=rp(S.lunch.cost)+' • '+S.lunch.time+' mnt';
+}
+function updateTracker(stage){
+  var order=['PLAN','DO','CHECK','ACT'], idx=order.indexOf(stage);
+  var nodes=document.querySelectorAll('#tracker .stg');
+  for(var i=0;i<nodes.length;i++){
+    nodes[i].className='stg'+(i<idx?' done':(i===idx?' active':''));
+  }
+}
+function setFeedback(kind,title,text){
+  var f=$('fb');
+  f.className='fb show '+kind;
+  f.innerHTML='';
+  var t=document.createElement('div'); t.className='ttl'; t.textContent=title;
+  var p=document.createElement('div'); p.innerHTML=text;
+  f.appendChild(t); f.appendChild(p);
+  return f;
+}
+function lockNext(lock){
+  $('btnNext').disabled=lock;
+  $('lockHint').textContent=lock?'🔒 Pilih langkah yang benar untuk membuka Next.':'✅ Benar! Tombol Next sudah terbuka.';
+}
+function nextLabel(){
+  var nxt=STEPS[S.step+1];
+  if(!nxt) return 'Lihat Rangkuman ➜';
+  return nxt.stage!==STEPS[S.step].stage ? 'Next ➜ Tahap '+nxt.stage : 'Next ➜';
+}
+
+/* =====================================================
+   RENDER STEP
+   ===================================================== */
+function renderStep(){
+  var st=STEPS[S.step];
+  S.answered=false;
+  if(S.wrong[S.step]===undefined) S.wrong[S.step]=0;
+  updateTracker(st.stage);
+  $('stepInfo').textContent='Langkah '+(S.step+1)+' dari '+STEPS.length+' • Tahap '+st.stage;
+  $('stageTag').textContent=st.stage;
+  $('qTitle').textContent=st.title;
+  $('qScenario').innerHTML=st.scenario;
+  $('fb').className='fb'; $('fb').innerHTML='';
+  $('btnNext').textContent=nextLabel();
+  lockNext(true);
+  setMood('smile',st.mood);
+
+  var tw=$('twistBox'); tw.innerHTML='';
+  if(st.twist){
+    var d=document.createElement('div'); d.className='twist'; d.textContent=st.twist;
+    tw.appendChild(d);
+    AU.sfx('twist'); setMood('wow',st.mood);
+  }
+
+  var body=$('qBody'); body.innerHTML='';
+  if(st.table) body.appendChild(buildTable(st.table));
+  if(st.type==='mcq') renderMcq(st,body); else renderBuilder(st,body);
+  var mc=$('mainCard'); mc.scrollIntoView && window.innerWidth<900 && mc.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function buildTable(cfg){
+  var tb=document.createElement('table'); tb.className='data';
+  var h='<tr>'+cfg.head.map(function(x){return '<th>'+x+'</th>';}).join('')+'</tr>';
+  cfg.rows.forEach(function(r){
+    var cls=r[4]||'';
+    var tdc=(cls==='bad'||cls==='bad2')?'bad':(cls==='ok'?'ok':'');
+    h+='<tr><td><b>'+r[0]+'</b></td>';
+    for(var i=1;i<4;i++){
+      var c='';
+      if(r[0]==='Hari 3' && (i===1||i===2)) c='bad';
+      else if(r[0]==='Hari 2' && i===3) c='bad';
+      else if(r[0]!=='Target') c='ok';
+      h+='<td class="'+c+'">'+r[i]+'</td>';
+    }
+    h+='</tr>';
+  });
+  tb.innerHTML=h;
+  var wrap=document.createElement('div'); wrap.style.overflowX='auto'; wrap.style.marginBottom='12px'; wrap.appendChild(tb);
+  return wrap;
+}
+function shuffle(arr){
+  var a=arr.slice(), i, j, t;
+  for(i=a.length-1;i>0;i--){ j=Math.floor(Math.random()*(i+1)); t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+/* ---------- MCQ ---------- */
+function renderMcq(st,body){
+  var wrap=document.createElement('div'); wrap.className='opts';
+  var opts=shuffle(st.options), letters=['A','B','C','D'];
+  opts.forEach(function(o,i){
+    var b=document.createElement('button'); b.type='button'; b.className='opt';
+    b.innerHTML='<span class="lt">'+letters[i]+'</span><span class="tx"></span>';
+    b.querySelector('.tx').textContent=o.t;
+    b.addEventListener('click',function(){ onPick(st,o,b,wrap); });
+    wrap.appendChild(b);
+  });
+  body.appendChild(wrap);
+}
+function onPick(st,o,btn,wrap){
+  if(S.answered) return;
+  if(o.ok){
+    S.answered=true;
+    btn.classList.add('right');
+    var all=wrap.querySelectorAll('.opt');
+    for(var i=0;i<all.length;i++) all[i].disabled=true;
+    AU.sfx('correct');
+    if(S.wrong[S.step]===0) S.firstTry++;
+    applyFx(st.gain);
+    if(st.box){ for(var k in st.box){ S.lunch[k]=st.box[k]; } }
+    if(st.boxStatus) S.lunch.status=st.boxStatus;
+    renderLunch();
+    setFeedback('good','✅ Tepat! Penguatan konsep PDCA',st.good);
+    setMood('smile','Mantap! Lanjut ya.');
+    lockNext(false);
+  } else {
+    btn.classList.add('wrong'); btn.disabled=true;
+    S.wrong[S.step]++; S.wrongTotal++;
+    AU.sfx('wrong');
+    applyFx(o.loss);
+    setFeedback('bad','⚠️ Belum tepat, coba pilihan lain',o.fb+' <br><b>Next tetap terkunci sampai kamu memilih langkah yang benar.</b>');
+    setMood('sad','Hmm, coba pikirkan lagi.');
+    var f=$('fb'); f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
+  }
+}
+
+/* ---------- BUILDER ---------- */
+function renderBuilder(st,body){
+  S.pick={karbo:null,lauk:null,sayur:null};
+  ['karbo','lauk','sayur'].forEach(function(cat){
+    var g=document.createElement('div'); g.className='bgroup';
+    var h=document.createElement('h4'); h.textContent=(cat==='karbo'?'🍚 ':cat==='lauk'?'🍗 ':'🥗 ')+SLOT_LABEL[cat];
+    g.appendChild(h);
+    var grid=document.createElement('div'); grid.className='items'; grid.id='items-'+cat;
+    ITEMS[cat].forEach(function(it){
+      var b=document.createElement('button'); b.type='button'; b.className='item'; b.dataset.id=it.id;
+      b.innerHTML='<span class="ie"></span><span><div class="in"></div><div class="im"></div></span>';
+      b.querySelector('.ie').textContent=it.e;
+      b.querySelector('.in').textContent=it.n;
+      b.querySelector('.im').textContent=rp(it.c)+' • '+it.t+' mnt • '+it.note;
+      b.addEventListener('click',function(){ pickItem(cat,it); });
+      grid.appendChild(b);
+    });
+    g.appendChild(grid); body.appendChild(g);
+  });
+  var tot=document.createElement('div'); tot.className='totals'; tot.id='bTotals'; body.appendChild(tot);
+  var row=document.createElement('div');
+  var bt=document.createElement('button'); bt.type='button'; bt.className='btn coral'; bt.id='btnTest'; bt.textContent='🧪 Uji Racikan';
+  bt.addEventListener('click',function(){ testBuild(st); });
+  row.appendChild(bt); body.appendChild(row);
+  S.lunch.karbo=null; S.lunch.lauk=null; S.lunch.sayur=null; S.lunch.status='Sedang diracik'; S.lunch.cost=0; S.lunch.time=0;
+  renderLunch(); renderTotals();
+}
+function findItem(cat,id){ for(var i=0;i<ITEMS[cat].length;i++) if(ITEMS[cat][i].id===id) return ITEMS[cat][i]; return null; }
+function pickItem(cat,it){
+  if(S.answered) return;
+  AU.sfx('pick');
+  S.pick[cat]=(S.pick[cat]===it.id)?null:it.id;
+  var btns=$('items-'+cat).querySelectorAll('.item');
+  for(var i=0;i<btns.length;i++) btns[i].classList.toggle('sel',btns[i].dataset.id===S.pick[cat]);
+  var cost=0,time=0;
+  ['karbo','lauk','sayur'].forEach(function(k){
+    var p=S.pick[k]?findItem(k,S.pick[k]):null;
+    S.lunch[k]=p?{n:p.n,e:p.e}:null;
+    if(p){cost+=p.c;time+=p.t;}
+  });
+  S.lunch.cost=cost; S.lunch.time=time;
+  renderLunch(); renderTotals();
+}
+function renderTotals(){
+  var c=S.lunch.cost,t=S.lunch.time, el=$('bTotals'); if(!el) return;
+  el.innerHTML='<span class="tot '+(c>TARGET_COST?'over':(c>0?'fine':''))+'">💰 Biaya: '+rp(c)+' / '+rp(TARGET_COST)+'</span>'+
+               '<span class="tot '+(t>TARGET_TIME?'over':(t>0?'fine':''))+'">⏱️ Waktu: '+t+' / '+TARGET_TIME+' mnt</span>';
+}
+function testBuild(st){
+  if(S.answered) return;
+  var k, miss=[];
+  ['karbo','lauk','sayur'].forEach(function(c){ if(!S.pick[c]) miss.push(SLOT_LABEL[c]); });
+  if(miss.length){
+    AU.sfx('click');
+    setFeedback('bad','ℹ️ Kotak bekal belum lengkap','Slot yang masih kosong: <b>'+miss.join(', ')+'</b>. Isi semua slot dulu sebelum diuji.');
+    setMood('smile','Lengkapi dulu semua slotnya.');
+    return;
+  }
+  var cost=0,time=0,bad=false;
+  ['karbo','lauk','sayur'].forEach(function(c){
+    var p=findItem(c,S.pick[c]); cost+=p.c; time+=p.t; if(p.bad) bad=true;
+  });
+  var issues=[];
+  if(cost>TARGET_COST) issues.push('Biaya <b>'+rp(cost)+'</b> melewati target '+rp(TARGET_COST)+'. Menu serba beli jadi sering terlihat praktis di awal, tetapi diam-diam menggerus anggaran.');
+  if(time>TARGET_TIME) issues.push('Waktu persiapan <b>'+time+' menit</b> melewati batas '+TARGET_TIME+' menit. Menu yang butuh diungkep atau direbus panjang akan mengulang masalah hari Selasa.');
+  if(bad) issues.push('Mi instan memang cepat dan murah, tetapi kenyangnya tidak tahan lama dan gizinya kurang seimbang. Ini jalan pintas yang mengulang masalah lapar jam 10.');
+  if(issues.length){
+    S.wrong[S.step]++; S.wrongTotal++;
+    AU.sfx('wrong');
+    applyFx({a:-4,e:-3,b:-4});
+    var f=setFeedback('bad','⚠️ Racikan belum lolos uji','Temuan:<ul class="issues">'+issues.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul><b>Ganti item yang bermasalah lalu uji lagi. Next tetap terkunci.</b>');
+    f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
+    setMood('sad','Belum pas, ayo atur ulang.');
+    return;
+  }
+  S.answered=true;
+  if(S.wrong[S.step]===0) S.firstTry++;
+  AU.sfx('correct');
+  applyFx(st.gain);
+  S.lunch.status=st.boxStatus; S.lunch.cost=cost; S.lunch.time=time;
+  S.final={cost:cost,time:time};
+  renderLunch();
+  var btns=document.querySelectorAll('#qBody .item'); for(var i=0;i<btns.length;i++) btns[i].disabled=true;
+  $('btnTest').disabled=true;
+  setFeedback('good','✅ Racikan lolos! Penguatan konsep PDCA','Biaya <b>'+rp(cost)+'</b> (≤ '+rp(TARGET_COST)+'), waktu <b>'+time+' menit</b> (≤ '+TARGET_TIME+'), dan komposisinya seimbang. Dalam PLAN, racikan tidak dipilih dari selera, tetapi disusun dari target dan batas yang jelas, lalu dibuktikan lewat uji coba kecil di tahap DO.');
+  setMood('smile','Racikan keren!');
+  lockNext(false);
+}
+
+/* =====================================================
+   FLOW
+   ===================================================== */
+function startGame(name,nik){
+  S=newState(); S.name=name; S.nik=nik;
+  $('pName').textContent=name; $('pNik').textContent=nik;
+  S.lunch={karbo:null,lauk:null,sayur:null,status:'Kosong',cost:0,time:0};
+  showScreen('screen-game');
+  updateMeters(); renderLunch(); renderStep();
+}
+$('btnNext').addEventListener('click',function(){
+  if(!S.answered || $('btnNext').disabled) return;
+  AU.sfx('click');
+  S.step++;
+  if(S.step>=STEPS.length) showEnd(); else renderStep();
+});
+
+function showEnd(){
+  AU.sfx('finish');
+  showScreen('screen-end');
+  $('eName').textContent=S.name; $('eNik').textContent=S.nik;
+  var m=S.meters, acc=Math.round(S.firstTry/STEPS.length*100);
+  var avg=(m.a+m.e+m.b)/3;
+  var score=Math.round(avg*0.7+acc*0.3);
+  $('eScore').textContent=score;
+  $('ring').style.setProperty('--p',score);
+  var rank,desc;
+  if(score>=85){rank='🏆 Master Bekal PDCA';desc='Kamu konsisten memakai fakta, uji kecil, dan pemeriksaan objektif. Siap jadi contoh di departemenmu.';}
+  else if(score>=70){rank='🥇 Pejuang Bekal Pintar';desc='Pola PDCA-mu sudah kuat. Perhatikan jebakan jalan pintas agar hasilnya makin presisi.';}
+  else if(score>=50){rank='🥈 Calon Ahli PDCA';desc='Fondasinya sudah ada. Latih kebiasaan memeriksa data sebelum menyimpulkan atau membakukan.';}
+  else {rank='🌱 Pemula Bersemangat';desc='Tidak apa-apa! Ulangi misi dan fokus pada urutan fakta, uji kecil, bukti, lalu tindak lanjut.';}
+  $('eRank').textContent=rank; $('eRankDesc').textContent=desc;
+  $('evA').textContent=Math.round(m.a)+'%'; $('evE').textContent=Math.round(m.e)+'%'; $('evB').textContent=Math.round(m.b)+'%';
+  setTimeout(function(){ $('emA').style.width=m.a+'%'; $('emE').style.width=m.e+'%'; $('emB').style.width=m.b+'%'; },80);
+
+  var le=$('lunchEnd'); le.innerHTML='';
+  var defs=[['karbo','karbo','Karbohidrat'],['lauk','','Lauk / Protein'],['sayur','','Pelengkap']];
+  defs.forEach(function(d){
+    var it=S.lunch[d[0]], div=document.createElement('div');
+    div.className='slot '+(d[1]||'')+(it?' filled':'');
+    div.innerHTML='<div class="em"></div><div class="lb"></div><div class="nm"></div>';
+    div.querySelector('.em').textContent=it?it.e:'•';
+    div.querySelector('.lb').textContent=d[2];
+    div.querySelector('.nm').textContent=it?it.n:'kosong';
+    le.appendChild(div);
+  });
+  var fc=S.final?S.final.cost:0, ft=S.final?S.final.time:0;
+  $('eCost').textContent='Rencana: '+rp(fc)+' • '+ft+' mnt';
+  $('eTime').textContent='Status: '+S.lunch.status;
+
+  var t='<tr><th>#</th><th>Tahap</th><th>Langkah</th><th>Percobaan salah</th></tr>';
+  STEPS.forEach(function(st,i){
+    var w=S.wrong[i]||0;
+    t+='<tr><td>'+(i+1)+'</td><td><b>'+st.stage+'</b></td><td>'+st.title+'</td><td>'+(w===0?'✅ langsung benar':('⚠️ '+w+'×'))+'</td></tr>';
+  });
+  t+='<tr><td colspan="4"><b>Total jawaban kurang tepat: '+S.wrongTotal+' • Benar di percobaan pertama: '+S.firstTry+'/'+STEPS.length+'</b></td></tr>';
+  $('sumTable').innerHTML=t;
+}
+
+$('btnAgain').addEventListener('click',function(){
+  AU.sfx('click');
+  ['emA','emE','emB'].forEach(function(i){$(i).style.width='0';});
+  showScreen('screen-start');
+  $('inName').value=S?S.name:''; $('inNik').value=S?S.nik:'';
+});
+$('btnPrint').addEventListener('click',function(){ window.print(); });
+
+/* =====================================================
+   VALIDASI FORM: NAMA -> NIK
+   ===================================================== */
+$('startForm').addEventListener('submit',function(ev){
+  ev.preventDefault();
+  var name=$('inName').value.replace(/\s+/g,' ').trim();
+  var nik=$('inNik').value.trim();
+  $('errName').textContent=''; $('errNik').textContent='';
+  function bad(inputId,errId,msg){
+    $(errId).textContent=msg;
+    var el=$(inputId); el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); el.focus();
+  }
+  if(!name){ bad('inName','errName','Nama wajib diisi terlebih dahulu.'); return; }
+  if(name.length<2){ bad('inName','errName','Nama terlalu pendek, minimal 2 karakter.'); return; }
+  if(!nik){ bad('inNik','errNik','NIK wajib diisi setelah Nama.'); return; }
+  if(!/^[A-Za-z0-9\-\/.]{3,20}$/.test(nik)){ bad('inNik','errNik','NIK hanya boleh huruf, angka, atau tanda - / . (3–20 karakter).'); return; }
+  AU.init();
+  syncToggles();
+  AU.sfx('click');
+  AU.startMusic();
+  startGame(name,nik);
+});
+$('inName').addEventListener('input',function(){ $('errName').textContent=''; });
+$('inNik').addEventListener('input',function(){ $('errNik').textContent=''; });
+
+/* pause musik saat tab disembunyikan */
+document.addEventListener('visibilitychange',function(){
+  if(!AU.ctx) return;
+  if(document.hidden){ AU.stopMusic(); if(AU.ctx.suspend) AU.ctx.suspend(); }
+  else { if(AU.ctx.resume) AU.ctx.resume(); if(AU.musicOn) AU.startMusic(); }
+});
+syncToggles();
+})();
+</script>
+</body>
+</html>
